@@ -1,3 +1,4 @@
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Sidebar } from "@components/layout/Sidebar";
 
 export default function PortalLayout({
@@ -6,6 +7,7 @@ export default function PortalLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <RequireAuth>
     <div className="flex min-h-full flex-1 bg-zinc-50 dark:bg-black">
       <Sidebar />
       <div className="flex min-h-full flex-1 flex-col">
@@ -17,5 +19,6 @@ export default function PortalLayout({
         <main className="flex-1 px-8 py-8">{children}</main>
       </div>
     </div>
+    </RequireAuth>
   );
 }

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "seed-user-1",
+    "email": "demo@trafficflow.local",
+    "phone": "15550101001",
+    "name": "Demo User",
+    "password": "demo1234"
+  },
+  {
+    "id": "seed-user-2",
+    "email": "ops@trafficflow.local",
+    "phone": "15550101002",
+    "name": "Operations",
+    "password": "traffic2026"
+  },
+  {
+    "id": "example",
+    "email": "user@example.com",
+    "phone": "15550101422",
+    "name": "User Example",
+    "password": "Password@123"
+  }
+]

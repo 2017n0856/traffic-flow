@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 
 const links = [{ href: "/dashboard", label: "Dashboard" }];
 
@@ -13,7 +14,7 @@ export function Sidebar() {
           Traffic Flow
         </Link>
       </div>
-      <nav className="flex flex-col gap-1 p-3 text-sm text-zinc-600 dark:text-zinc-400">
+      <nav className="flex flex-1 flex-col gap-1 p-3 text-sm text-zinc-600 dark:text-zinc-400">
         {links.map((item) => (
           <Link
             key={item.href}
@@ -23,6 +24,7 @@ export function Sidebar() {
             {item.label}
           </Link>
         ))}
+        <SignOutButton />
       </nav>
     </aside>
   );
