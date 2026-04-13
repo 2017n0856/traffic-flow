@@ -1,9 +1,11 @@
 {
-  "name": "tf-temp",
+  "name": "traffic-flow",
   "version": "0.1.0",
   "private": true,
+  "description": "Traffic Flow — Next.js app (App Router, TypeScript, Tailwind CSS v4)",
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -15,7 +17,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
