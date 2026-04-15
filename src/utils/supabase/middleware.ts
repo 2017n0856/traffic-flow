@@ -38,10 +38,16 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]),
+          response.cookies.set(
+            name,
+            value,
+            options as Parameters<typeof response.cookies.set>[2],
+          ),
         );
       },
     },
@@ -52,7 +58,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isDashboardPath = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isDashboardPath =
+    pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
 
   if ((isDashboardPath || isAdminPath) && !user) {
