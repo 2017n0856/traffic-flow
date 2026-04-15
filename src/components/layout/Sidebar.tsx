@@ -49,11 +49,13 @@ export function Sidebar() {
     return [{ href: "/dashboard", label: "Dashboard" }];
   }, [role]);
 
+  const homeHref = role === "admin" ? "/admin" : "/dashboard";
+
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="border-b border-zinc-200 px-4 py-4 dark:border-zinc-800">
         <Link
-          href="/"
+          href={homeHref}
           className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50"
         >
           Traffic Flow

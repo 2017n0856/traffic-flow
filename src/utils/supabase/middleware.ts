@@ -69,16 +69,24 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (isAdminPath && user) {
+  if (user && (isDashboardPath || isAdminPath)) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .maybeSingle<{ role: string | null }>();
 
-    if (!profile || profile.role !== "admin") {
+    const isAdmin = profile?.role === "admin";
+
+    if (isAdminPath && !isAdmin) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isDashboardPath && isAdmin) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin";
       return NextResponse.redirect(redirectUrl);
     }
   }
