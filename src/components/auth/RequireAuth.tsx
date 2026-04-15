@@ -2,23 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getSession } from "@/lib/auth/local-users";
+import { createClient } from "@/utils/supabase/client";
 
 type Props = { children: React.ReactNode };
 
 export function RequireAuth({ children }: Props) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<"checking" | "authorized">("checking");
 
   useEffect(() => {
-    if (!getSession()) {
-      router.replace("/sign-in");
-      return;
-    }
-    setReady(true);
+    const supabase = createClient();
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        router.replace("/sign-in");
+        return;
+      }
+      setStatus("authorized");
+    });
   }, [router]);
 
-  if (!ready) {
+  if (status !== "authorized") {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-50 text-sm text-zinc-500 dark:bg-black dark:text-zinc-400">
         Checking session…

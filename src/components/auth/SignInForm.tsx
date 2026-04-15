@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { setSession, verifyCredentials } from "@/lib/auth/local-users";
+import { createClient } from "@/utils/supabase/client";
 import {
   validateEmail,
   validatePasswordLogin,
@@ -29,7 +29,7 @@ export function SignInForm() {
     });
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
 
@@ -44,12 +44,17 @@ export function SignInForm() {
 
     setPending(true);
     try {
-      const user = verifyCredentials(email, password);
-      if (!user) {
-        setFormError("Invalid email or password.");
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setFormError(error.message);
         return;
       }
-      setSession(user);
+
       router.push("/dashboard");
       router.refresh();
     } finally {
@@ -67,19 +72,7 @@ export function SignInForm() {
           Sign in
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Session is stored in{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">
-            sessionStorage
-          </code>
-          . Seed users live in{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">
-            src/data/users.json
-          </code>
-          ; sign-ups merge into{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">
-            localStorage
-          </code>
-          .
+          Sign in using your Supabase account credentials.
         </p>
       </div>
 

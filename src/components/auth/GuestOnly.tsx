@@ -2,23 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getSession } from "@/lib/auth/local-users";
+import { createClient } from "@/utils/supabase/client";
 
 type Props = { children: React.ReactNode };
 
 export function GuestOnly({ children }: Props) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<"checking" | "guest">("checking");
 
   useEffect(() => {
-    if (getSession()) {
-      router.replace("/dashboard");
-      return;
-    }
-    setReady(true);
+    const supabase = createClient();
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/dashboard");
+        return;
+      }
+      setStatus("guest");
+    });
   }, [router]);
 
-  if (!ready) {
+  if (status !== "guest") {
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
         Redirecting…

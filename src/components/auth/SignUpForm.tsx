@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { registerUser, setSession } from "@/lib/auth/local-users";
+import { createClient } from "@/utils/supabase/client";
 import {
   normalizePhoneDigits,
   validateEmail,
@@ -34,7 +34,7 @@ export function SignUpForm() {
     });
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
 
@@ -53,17 +53,23 @@ export function SignUpForm() {
 
     setPending(true);
     try {
-      const result = registerUser({
-        name: name.trim(),
+      const supabase = createClient();
+      const { error } = await supabase.auth.signUp({
         email: email.trim(),
-        phone: normalizePhoneDigits(phone),
         password,
+        options: {
+          data: {
+            full_name: name.trim(),
+            phone: normalizePhoneDigits(phone),
+          },
+        },
       });
-      if (!result.ok) {
-        setFormError(result.error);
+
+      if (error) {
+        setFormError(error.message);
         return;
       }
-      setSession(result.user);
+
       router.push("/dashboard");
       router.refresh();
     } finally {
@@ -81,15 +87,7 @@ export function SignUpForm() {
           Create account
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Accounts are merged from{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">
-            src/data/users.json
-          </code>{" "}
-          and new rows in{" "}
-          <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-800">
-            localStorage
-          </code>
-          . Email and phone must be unique.
+          Create your account in Supabase Auth.
         </p>
       </div>
 
@@ -244,7 +242,7 @@ export function SignUpForm() {
             </p>
           ) : null}
           <p className="text-xs text-zinc-500 dark:text-zinc-500">
-            Mock only: 8+ characters with at least one letter and one number.
+            Use at least 8 characters with letters and numbers.
           </p>
         </div>
 

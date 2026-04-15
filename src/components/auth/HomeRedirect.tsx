@@ -2,17 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { getSession } from "@/lib/auth/local-users";
+import { createClient } from "@/utils/supabase/client";
 
 export function HomeRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    if (getSession()) {
-      router.replace("/dashboard");
-    } else {
-      router.replace("/sign-in");
-    }
+    const supabase = createClient();
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/sign-in");
+      }
+    });
   }, [router]);
 
   return (
