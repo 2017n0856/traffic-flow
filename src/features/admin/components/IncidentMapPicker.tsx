@@ -21,6 +21,8 @@ type IncidentMapPickerProps = {
   onSelect: (coordinates: Coordinates) => void;
 };
 
+const SYDNEY_COORDINATES: [number, number] = [-33.8688, 151.2093];
+
 const markerIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -64,7 +66,7 @@ export function IncidentMapPicker({
   onSelect,
 }: IncidentMapPickerProps) {
   const center = useMemo<[number, number]>(() => {
-    if (!selected) return [24.8607, 67.0011];
+    if (!selected) return SYDNEY_COORDINATES;
     return [selected.lat, selected.lng];
   }, [selected]);
 

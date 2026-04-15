@@ -26,6 +26,8 @@ type TrafficDashboardMapProps = {
   onCenterChange: (coordinates: Coordinates) => void;
 };
 
+const SYDNEY_COORDINATES: [number, number] = [-33.8688, 151.2093];
+
 const centerMarkerIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -75,7 +77,7 @@ export function TrafficDashboardMap({
   onCenterChange,
 }: TrafficDashboardMapProps) {
   const mapCenter = useMemo<[number, number]>(() => {
-    if (!center) return [24.8607, 67.0011];
+    if (!center) return SYDNEY_COORDINATES;
     return [center.lat, center.lng];
   }, [center]);
 
