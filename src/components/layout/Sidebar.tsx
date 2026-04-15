@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { SignOutButton } from "@/components/layout/SignOutButton";
+import { createClient } from "@/utils/supabase/client";
 
-const links = [{ href: "/dashboard", label: "Dashboard" }];
+type NavRole = "admin" | "user" | null;
 
 function linkIsActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -13,6 +15,39 @@ function linkIsActive(pathname: string, href: string) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [role, setRole] = useState<NavRole>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    void supabase.auth.getUser().then(async ({ data }) => {
+      const userId = data.user?.id;
+      if (!userId) {
+        setRole("user");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle<{ role: "admin" | "user" | null }>();
+
+      setRole(profile?.role === "admin" ? "admin" : "user");
+    });
+  }, []);
+
+  const links = useMemo(() => {
+    if (role === "admin") {
+      return [
+        { href: "/admin", label: "Incident Report" },
+        { href: "/admin/reports", label: "Pending Reports" },
+        { href: "/admin/users", label: "User Management" },
+      ];
+    }
+
+    return [{ href: "/dashboard", label: "Dashboard" }];
+  }, [role]);
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">

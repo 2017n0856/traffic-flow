@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
 function getRequiredSupabaseUrl() {
@@ -23,7 +24,7 @@ function getRequiredPublicKey() {
   return value;
 }
 
-export function createClient(): ReturnType<typeof createBrowserClient<Database>> {
+export function createClient(): SupabaseClient<Database> {
   const supabaseUrl = getRequiredSupabaseUrl();
   const supabasePublicKey = getRequiredPublicKey();
   return createBrowserClient<Database>(supabaseUrl, supabasePublicKey);

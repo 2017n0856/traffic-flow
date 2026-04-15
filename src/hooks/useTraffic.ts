@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import type { TrafficEvent } from "@/types/supabase";
 
 function isApprovedEvent(event: TrafficEvent) {
-  return event.status === "approved" || Boolean(event.approved_by_admin);
+  return event.status === "approved" || Boolean(event.is_predicted);
 }
 
 function upsertById(current: TrafficEvent[], incoming: TrafficEvent) {
@@ -34,8 +34,8 @@ export function useTraffic() {
       const { data, error: rpcError } = await supabaseRef.current.rpc(
         "get_activities_in_radius",
         {
-          lat,
-          lng,
+          user_lat: lat,
+          user_lng: lng,
           radius_km: radiusKm,
         },
       );
@@ -46,7 +46,7 @@ export function useTraffic() {
         return [];
       }
 
-      const nextEvents = (data ?? []) as TrafficEvent[];
+      const nextEvents: TrafficEvent[] = (data ?? []) as TrafficEvent[];
       setEvents(nextEvents);
       setLoading(false);
       return nextEvents;
@@ -98,7 +98,7 @@ export function useTraffic() {
     () =>
       events
         .filter(isApprovedEvent)
-        .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? "")),
+        .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? "")),
     [events],
   );
 

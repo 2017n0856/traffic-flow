@@ -12,67 +12,75 @@ export interface Database {
       profiles: {
         Row: {
           id: string;
-          email: string | null;
+          email: string;
           role: "admin" | "user";
           created_at: string | null;
-          updated_at: string | null;
         };
         Insert: {
           id: string;
-          email?: string | null;
+          email: string;
           role?: "admin" | "user";
           created_at?: string | null;
-          updated_at?: string | null;
         };
         Update: {
-          email?: string | null;
+          email?: string;
           role?: "admin" | "user";
-          updated_at?: string | null;
         };
+        Relationships: [];
       };
       traffic_events: {
         Row: {
           id: string;
-          title: string;
-          description: string | null;
-          latitude: number;
-          longitude: number;
-          severity: "low" | "medium" | "high" | null;
-          status: "pending" | "approved" | "rejected" | null;
-          approved_by_admin: boolean | null;
           created_at: string | null;
-          updated_at: string | null;
+          type: "accident" | "closure" | "congestion" | null;
+          description: string | null;
+          status: "pending" | "approved" | null;
+          is_predicted: boolean | null;
+          location_lat: number;
+          location_lng: number;
+          location_point: unknown | null;
+          reported_by: string | null;
         };
         Insert: {
           id?: string;
-          title: string;
-          description?: string | null;
-          latitude: number;
-          longitude: number;
-          severity?: "low" | "medium" | "high" | null;
-          status?: "pending" | "approved" | "rejected" | null;
-          approved_by_admin?: boolean | null;
           created_at?: string | null;
-          updated_at?: string | null;
+          type?: "accident" | "closure" | "congestion" | null;
+          description?: string | null;
+          status?: "pending" | "approved" | null;
+          is_predicted?: boolean | null;
+          location_lat: number;
+          location_lng: number;
+          location_point?: unknown | null;
+          reported_by?: string | null;
         };
         Update: {
-          title?: string;
+          created_at?: string | null;
+          type?: "accident" | "closure" | "congestion" | null;
           description?: string | null;
-          latitude?: number;
-          longitude?: number;
-          severity?: "low" | "medium" | "high" | null;
-          status?: "pending" | "approved" | "rejected" | null;
-          approved_by_admin?: boolean | null;
-          updated_at?: string | null;
+          status?: "pending" | "approved" | null;
+          is_predicted?: boolean | null;
+          location_lat?: number;
+          location_lng?: number;
+          location_point?: unknown | null;
+          reported_by?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "traffic_events_reported_by_fkey";
+            columns: ["reported_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
     Functions: {
       get_activities_in_radius: {
         Args: {
-          lat: number;
-          lng: number;
+          user_lat: number;
+          user_lng: number;
           radius_km: number;
         };
         Returns: Database["public"]["Tables"]["traffic_events"]["Row"][];
