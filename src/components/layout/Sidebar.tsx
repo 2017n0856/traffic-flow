@@ -46,7 +46,10 @@ export function Sidebar() {
       ];
     }
 
-    return [{ href: "/dashboard", label: "Dashboard" }];
+    return [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/report-incident", label: "Report Incident" },
+    ];
   }, [role]);
 
   const homeHref = role === "admin" ? "/admin" : "/dashboard";

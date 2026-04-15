@@ -60,16 +60,19 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isDashboardPath =
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isReportIncidentPath =
+    pathname === "/report-incident" || pathname.startsWith("/report-incident/");
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isUserPath = isDashboardPath || isReportIncidentPath;
 
-  if ((isDashboardPath || isAdminPath) && !user) {
+  if ((isUserPath || isAdminPath) && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (isDashboardPath || isAdminPath)) {
+  if (user && (isUserPath || isAdminPath)) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -84,7 +87,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    if (isDashboardPath && isAdmin) {
+    if (isUserPath && isAdmin) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/admin";
       return NextResponse.redirect(redirectUrl);

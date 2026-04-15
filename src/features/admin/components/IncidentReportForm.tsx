@@ -15,7 +15,17 @@ const IncidentMapPicker = dynamic(
   { ssr: false },
 );
 
-export function IncidentReportForm() {
+type IncidentReportFormProps = {
+  defaultStatus?: "pending" | "approved";
+  successMessage?: string;
+  helperText?: string;
+};
+
+export function IncidentReportForm({
+  defaultStatus = "approved",
+  successMessage = "Incident submitted successfully. It is now live for users.",
+  helperText = "Create a new incident marker for moderation and public publishing.",
+}: IncidentReportFormProps) {
   const [type, setType] = useState<IncidentType>("accident");
   const [description, setDescription] = useState("");
   const [selectedCoordinates, setSelectedCoordinates] = useState<Coordinates | null>(null);
@@ -74,7 +84,7 @@ export function IncidentReportForm() {
       const { error: insertError } = await supabase.from("traffic_events").insert({
         type,
         description: description.trim() || null,
-        status: "approved",
+        status: defaultStatus,
         is_predicted: false,
         location_lat: selectedCoordinates.lat,
         location_lng: selectedCoordinates.lng,
@@ -88,7 +98,7 @@ export function IncidentReportForm() {
 
       setDescription("");
       setSelectedCoordinates(null);
-      setMessage("Incident submitted successfully. It is now live for users.");
+      setMessage(successMessage);
     } finally {
       setPending(false);
     }
@@ -98,7 +108,7 @@ export function IncidentReportForm() {
     <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Report Incident</h2>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Create a new incident marker for moderation and public publishing.
+        {helperText}
       </p>
 
       <form className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-5" onSubmit={onSubmit}>

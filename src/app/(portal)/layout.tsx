@@ -1,4 +1,5 @@
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { TrafficRealtimeToasts } from "@/components/notifications/TrafficRealtimeToasts";
 import { Sidebar } from "@components/layout/Sidebar";
 
 export default function PortalLayout({
@@ -18,6 +19,7 @@ export default function PortalLayout({
         </header> */}
           <main className="flex-1 px-8 py-8">{children}</main>
         </div>
+        <TrafficRealtimeToasts />
       </div>
     </RequireAuth>
   );
