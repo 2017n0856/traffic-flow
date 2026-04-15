@@ -10,6 +10,17 @@ type Coordinates = {
   lng: number;
 };
 
+type EventTypeFilter = "all" | "accident" | "closure" | "congestion";
+type TimeFilter = "30m" | "1h" | "4h" | "1d" | "all";
+
+const timeFilterOptions: Array<{ value: TimeFilter; label: string; ms: number | null }> = [
+  { value: "30m", label: "Last 30 min", ms: 30 * 60 * 1000 },
+  { value: "1h", label: "Last 1 hour", ms: 60 * 60 * 1000 },
+  { value: "4h", label: "Last 4 hours", ms: 4 * 60 * 60 * 1000 },
+  { value: "1d", label: "Last 24 hours", ms: 24 * 60 * 60 * 1000 },
+  { value: "all", label: "All time", ms: null },
+];
+
 function toRadians(value: number) {
   return (value * Math.PI) / 180;
 }
@@ -35,8 +46,24 @@ function filterWithinRadius(events: TrafficEvent[], center: Coordinates | null, 
   });
 }
 
+function matchesEventType(event: TrafficEvent, filter: EventTypeFilter) {
+  if (filter === "all") return true;
+  return event.type === filter;
+}
+
+function matchesReportTime(event: TrafficEvent, filter: TimeFilter) {
+  const selected = timeFilterOptions.find((option) => option.value === filter);
+  if (!selected || selected.ms === null) return true;
+  if (!event.created_at) return false;
+  const eventTime = new Date(event.created_at).getTime();
+  if (Number.isNaN(eventTime)) return false;
+  return Date.now() - eventTime <= selected.ms;
+}
+
 export function UserTrafficDashboard() {
   const [radiusKm, setRadiusKm] = useState(5);
+  const [eventTypeFilter, setEventTypeFilter] = useState<EventTypeFilter>("all");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("1h");
   const [center, setCenter] = useState<Coordinates | null>(null);
   const [focusCoordinates, setFocusCoordinates] = useState<Coordinates | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -49,9 +76,13 @@ export function UserTrafficDashboard() {
     void fetchNearbyActivities(center.lat, center.lng, radiusKm);
   }, [center, fetchNearbyActivities, radiusKm]);
 
-  const visibleMarkers = useMemo(
-    () => filterWithinRadius(alertCenterEvents, center, radiusKm),
-    [alertCenterEvents, center, radiusKm],
+  const filteredEvents = useMemo(
+    () =>
+      filterWithinRadius(alertCenterEvents, center, radiusKm).filter(
+        (event) =>
+          matchesEventType(event, eventTypeFilter) && matchesReportTime(event, timeFilter),
+      ),
+    [alertCenterEvents, center, eventTypeFilter, radiusKm, timeFilter],
   );
 
   function useCurrentLocation() {
@@ -87,7 +118,7 @@ export function UserTrafficDashboard() {
           Smart Traffic Dashboard
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Click on the map to set center point, adjust radius, and monitor live traffic activity.
+          Click on the map to set center point, apply filters, and monitor live traffic activity.
         </p>
       </div>
 
@@ -96,7 +127,7 @@ export function UserTrafficDashboard() {
           center={center}
           focusCoordinates={focusCoordinates}
           radiusKm={radiusKm}
-          markers={visibleMarkers}
+          markers={filteredEvents}
           onCenterChange={(coordinates) => {
             setCenter(coordinates);
             setFocusCoordinates(coordinates);
@@ -128,6 +159,39 @@ export function UserTrafficDashboard() {
             />
           </div>
 
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-zinc-700 dark:text-zinc-300">
+              Event type
+            </span>
+            <select
+              value={eventTypeFilter}
+              onChange={(event) => setEventTypeFilter(event.target.value as EventTypeFilter)}
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            >
+              <option value="all">All events</option>
+              <option value="accident">Accidents</option>
+              <option value="closure">Closures</option>
+              <option value="congestion">Congestion</option>
+            </select>
+          </label>
+
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium text-zinc-700 dark:text-zinc-300">
+              Report time
+            </span>
+            <select
+              value={timeFilter}
+              onChange={(event) => setTimeFilter(event.target.value as TimeFilter)}
+              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            >
+              {timeFilterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="rounded-md bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
             {center
               ? `Center: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`
@@ -135,12 +199,61 @@ export function UserTrafficDashboard() {
           </div>
 
           <div className="rounded-md bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
-            Showing {visibleMarkers.length} live incidents in radius.
+            Showing {filteredEvents.length} incidents after radius + filter match.
           </div>
 
           {loading ? <p className="text-xs text-zinc-500">Loading activities...</p> : null}
           {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
           {geoError ? <p className="text-xs text-red-600 dark:text-red-400">{geoError}</p> : null}
+        </section>
+
+        <section className="absolute bottom-4 right-4 top-4 z-[500] w-[22rem] rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/95">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+              Incident Feed
+            </h2>
+            <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+              {filteredEvents.length}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Chronological alerts (newest first)
+          </p>
+
+          <div className="mt-3 h-[calc(100%-3.5rem)] space-y-2 overflow-y-auto pr-1">
+            {filteredEvents.length === 0 ? (
+              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                No incidents match selected filters.
+              </div>
+            ) : (
+              filteredEvents.map((event) => (
+                <article
+                  key={event.id}
+                  className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium capitalize text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                      {event.type ?? "incident"}
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      {event.created_at
+                        ? new Date(event.created_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Unknown"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-300">
+                    {event.description ?? "No description provided."}
+                  </p>
+                  <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    {event.location_lat.toFixed(5)}, {event.location_lng.toFixed(5)}
+                  </p>
+                </article>
+              ))
+            )}
+          </div>
         </section>
       </div>
     </div>
