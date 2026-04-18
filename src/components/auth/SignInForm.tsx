@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import {
-  validateEmail,
-  validatePasswordLogin,
-} from "@/lib/auth/validation";
+import { validateEmail, validatePasswordLogin } from "@/lib/auth/validation";
 
 type FieldKey = "email" | "password";
 
@@ -15,9 +12,9 @@ export function SignInForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>(
-    {},
-  );
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<FieldKey, string>>
+  >({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -72,7 +69,7 @@ export function SignInForm() {
           Sign in
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Sign in using your Supabase account credentials.
+          Sign in using your account credentials.
         </p>
       </div>
 
@@ -96,7 +93,9 @@ export function SignInForm() {
               clearFieldError("email");
             }}
             aria-invalid={Boolean(fieldErrors.email)}
-            aria-describedby={fieldErrors.email ? "signin-email-error" : undefined}
+            aria-describedby={
+              fieldErrors.email ? "signin-email-error" : undefined
+            }
             className={`${inputClass} border-zinc-200 bg-white text-zinc-900 focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 ${
               fieldErrors.email
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
@@ -105,7 +104,10 @@ export function SignInForm() {
             placeholder="you@example.com"
           />
           {fieldErrors.email ? (
-            <p id="signin-email-error" className="text-xs text-red-600 dark:text-red-400">
+            <p
+              id="signin-email-error"
+              className="text-xs text-red-600 dark:text-red-400"
+            >
               {fieldErrors.email}
             </p>
           ) : null}
@@ -171,13 +173,6 @@ export function SignInForm() {
           Create one
         </Link>
       </p>
-
-      <Link
-        href="/"
-        className="inline-flex text-sm font-medium text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
-      >
-        Back to home
-      </Link>
     </div>
   );
 }

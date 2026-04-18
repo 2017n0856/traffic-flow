@@ -87,7 +87,7 @@ export function SignUpForm() {
           Create account
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Create your account in Supabase Auth.
+          Create your new user account.
         </p>
       </div>
 
@@ -110,7 +110,9 @@ export function SignUpForm() {
               clearFieldError("name");
             }}
             aria-invalid={Boolean(fieldErrors.name)}
-            aria-describedby={fieldErrors.name ? "signup-name-error" : undefined}
+            aria-describedby={
+              fieldErrors.name ? "signup-name-error" : undefined
+            }
             className={`${inputClass} border-zinc-200 bg-white text-zinc-900 focus:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 ${
               fieldErrors.name
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/30"
@@ -119,7 +121,10 @@ export function SignUpForm() {
             placeholder="Alex Rivera"
           />
           {fieldErrors.name ? (
-            <p id="signup-name-error" className="text-xs text-red-600 dark:text-red-400">
+            <p
+              id="signup-name-error"
+              className="text-xs text-red-600 dark:text-red-400"
+            >
               {fieldErrors.name}
             </p>
           ) : null}
@@ -270,13 +275,6 @@ export function SignUpForm() {
           Sign in
         </Link>
       </p>
-
-      <Link
-        href="/"
-        className="inline-flex text-sm font-medium text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
-      >
-        Back to home
-      </Link>
     </div>
   );
 }
