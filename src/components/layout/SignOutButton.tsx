@@ -15,7 +15,7 @@ export function SignOutButton() {
         router.push("/");
         router.refresh();
       }}
-      className="mt-auto w-full rounded-md px-3 py-2 text-left text-lg text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+      className="w-full rounded-md px-3 py-2 text-left text-base font-normal text-teal-100/90 transition hover:bg-white/10 hover:text-white dark:text-teal-200/80 dark:hover:bg-teal-500/15 dark:hover:text-white"
     >
       Sign out
     </button>

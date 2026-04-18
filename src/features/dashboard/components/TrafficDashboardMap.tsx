@@ -111,10 +111,14 @@ export function TrafficDashboardMap({
             icon={getEventIcon(event.type)}
           >
             <Popup>
-              <div className="text-sm">
-                <p className="font-semibold capitalize">{event.type ?? "incident"}</p>
-                <p className="mt-1">{event.description ?? "No description provided."}</p>
-                <p className="mt-1 text-xs text-zinc-500">
+              <div className="text-base">
+                <p className="font-semibold capitalize leading-tight text-zinc-900">
+                  {event.type ?? "incident"}
+                </p>
+                <p className="mt-1 font-normal leading-snug text-zinc-800">
+                  {event.description ?? "No description provided."}
+                </p>
+                <p className="mt-1 text-sm font-normal text-zinc-500">
                   {event.created_at ? new Date(event.created_at).toLocaleString() : "Unknown time"}
                 </p>
               </div>

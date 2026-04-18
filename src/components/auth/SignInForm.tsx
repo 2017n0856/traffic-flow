@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { validateEmail, validatePasswordLogin } from "@/lib/auth/validation";
+import {
+  bodyMutedClass,
+  formFieldErrorClass,
+  formInputBaseClass,
+  formLabelClass,
+  pageTitleClass,
+  primaryButtonClass,
+  textLinkClass,
+} from "@/lib/ui/form";
 
 type FieldKey = "email" | "password";
 
@@ -59,26 +68,20 @@ export function SignInForm() {
     }
   }
 
-  const inputClass =
-    "block w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none ring-zinc-400/40 placeholder:text-zinc-400 focus:ring-2 dark:ring-zinc-600/40";
+  const inputClass = formInputBaseClass;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Sign in
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <h1 className={pageTitleClass}>Sign in</h1>
+        <p className={`mt-1 ${bodyMutedClass}`}>
           Sign in using your account credentials.
         </p>
       </div>
 
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
         <div className="space-y-1.5">
-          <label
-            htmlFor="signin-email"
-            className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
-          >
+          <label htmlFor="signin-email" className={formLabelClass}>
             Email
           </label>
           <input
@@ -104,19 +107,13 @@ export function SignInForm() {
             placeholder="you@example.com"
           />
           {fieldErrors.email ? (
-            <p
-              id="signin-email-error"
-              className="text-xs text-red-600 dark:text-red-400"
-            >
+            <p id="signin-email-error" className={formFieldErrorClass}>
               {fieldErrors.email}
             </p>
           ) : null}
         </div>
         <div className="space-y-1.5">
-          <label
-            htmlFor="signin-password"
-            className="text-xs font-medium text-zinc-700 dark:text-zinc-300"
-          >
+          <label htmlFor="signin-password" className={formLabelClass}>
             Password
           </label>
           <input
@@ -140,36 +137,26 @@ export function SignInForm() {
             }`}
           />
           {fieldErrors.password ? (
-            <p
-              id="signin-password-error"
-              className="text-xs text-red-600 dark:text-red-400"
-            >
+            <p id="signin-password-error" className={formFieldErrorClass}>
               {fieldErrors.password}
             </p>
           ) : null}
         </div>
 
         {formError ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className={formFieldErrorClass} role="alert">
             {formError}
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <button type="submit" disabled={pending} className={primaryButtonClass}>
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className={`text-center ${bodyMutedClass}`}>
         No account?{" "}
-        <Link
-          href="/sign-up"
-          className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50"
-        >
+        <Link href="/sign-up" className={textLinkClass}>
           Create one
         </Link>
       </p>

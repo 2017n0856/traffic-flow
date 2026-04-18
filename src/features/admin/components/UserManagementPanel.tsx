@@ -2,6 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { Profile } from "@/types/supabase";
+import {
+  adminBodyMutedClass,
+  adminFormControlClass,
+  adminFormFieldErrorClass,
+  adminFormLabelClass,
+  adminSectionTitleClass,
+  adminTableHeaderClass,
+} from "@/lib/ui/form";
 
 type UserManagementPanelProps = {
   users: Profile[];
@@ -78,37 +86,47 @@ export function UserManagementPanel({
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Users</h2>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            <h2 className={adminSectionTitleClass}>Users</h2>
+            <p className={`mt-1 ${adminBodyMutedClass}`}>
               Search accounts and update roles to manage admin privileges.
             </p>
           </div>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            className="w-full max-w-xs rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            placeholder="Search by email..."
-          />
+          <div className="w-full max-w-xs space-y-1.5">
+            <label htmlFor="user-search" className={`block ${adminFormLabelClass}`}>
+              Search by email
+            </label>
+            <input
+              id="user-search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className={`${adminFormControlClass} max-w-xs`}
+              placeholder="Filter list…"
+            />
+          </div>
         </div>
 
-        {loading ? <p className="mt-4 text-sm text-zinc-500">Loading users...</p> : null}
-        {error ? <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-        {formError ? <p className="mt-4 text-sm text-red-600 dark:text-red-400">{formError}</p> : null}
+        {loading ? (
+          <p className="mt-4 text-base font-normal text-zinc-500">Loading users...</p>
+        ) : null}
+        {error ? <p className={`mt-4 ${adminFormFieldErrorClass}`}>{error}</p> : null}
+        {formError ? <p className={`mt-4 ${adminFormFieldErrorClass}`}>{formError}</p> : null}
 
         <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+          <table className="min-w-full divide-y divide-zinc-200 text-base dark:divide-zinc-800">
             <thead>
-              <tr className="text-left text-zinc-500 dark:text-zinc-400">
-                <th className="py-2 pr-4">Email</th>
-                <th className="py-2 pr-4">Role</th>
-                <th className="py-2 pr-4">Created</th>
-                <th className="py-2 text-right">Actions</th>
+              <tr>
+                <th className={`py-2 pr-4 ${adminTableHeaderClass}`}>Email</th>
+                <th className={`py-2 pr-4 ${adminTableHeaderClass}`}>Role</th>
+                <th className={`py-2 pr-4 ${adminTableHeaderClass}`}>Created</th>
+                <th className={`py-2 text-right ${adminTableHeaderClass}`}>Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td className="py-3 pr-4 text-zinc-800 dark:text-zinc-100">{user.email}</td>
+                  <td className="py-3 pr-4 font-normal text-zinc-800 dark:text-zinc-100">
+                    {user.email}
+                  </td>
                   <td className="py-3 pr-4">
                     <select
                       value={user.role}
@@ -116,13 +134,13 @@ export function UserManagementPanel({
                         void updateRole(user.id, event.target.value as "user" | "admin")
                       }
                       disabled={savingId === user.id}
-                      className="rounded-md border border-zinc-300 bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900"
+                      className={`${adminFormControlClass} w-auto min-w-[6rem] px-2 py-1.5`}
                     >
                       <option value="user">user</option>
                       <option value="admin">admin</option>
                     </select>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-600 dark:text-zinc-400">
+                  <td className="py-3 pr-4 font-normal text-zinc-600 dark:text-zinc-400">
                     {user.created_at ? new Date(user.created_at).toLocaleString() : "Unknown"}
                   </td>
                   <td className="py-3 text-right">
@@ -130,7 +148,7 @@ export function UserManagementPanel({
                       type="button"
                       onClick={() => void deleteUser(user.id)}
                       disabled={savingId === user.id}
-                      className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500 disabled:opacity-60"
+                      className="rounded-md bg-red-600 px-3 py-2 text-base font-medium text-white transition hover:bg-red-500 disabled:opacity-60"
                     >
                       Delete
                     </button>

@@ -90,7 +90,7 @@ export function TrafficRealtimeToasts() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-800 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-normal leading-snug text-zinc-800 shadow-lg dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         >
           {toast.message}
         </div>

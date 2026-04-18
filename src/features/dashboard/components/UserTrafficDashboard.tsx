@@ -4,6 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { TrafficDashboardMap } from "@/features/dashboard/components/TrafficDashboardMap";
 import { useTraffic } from "@/hooks/useTraffic";
 import type { TrafficEvent } from "@/types/supabase";
+import {
+  adminBodyMutedClass,
+  adminFormControlClass,
+  adminFormFieldErrorClass,
+  adminFormLabelClass,
+  adminPageTitleClass,
+  adminPanelTitleClass,
+  largeSecondaryButtonClass,
+} from "@/lib/ui/form";
 
 type Coordinates = {
   lat: number;
@@ -114,10 +123,8 @@ export function UserTrafficDashboard() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Smart Traffic Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <h1 className={adminPageTitleClass}>Smart Traffic Dashboard</h1>
+        <p className={`mt-1 ${adminBodyMutedClass}`}>
           Click on the map to set center point, apply filters, and monitor live traffic activity.
         </p>
       </div>
@@ -139,15 +146,13 @@ export function UserTrafficDashboard() {
             type="button"
             onClick={useCurrentLocation}
             disabled={locating}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            className={`w-full ${largeSecondaryButtonClass} disabled:opacity-60`}
           >
             {locating ? "Locating..." : "Use current location"}
           </button>
 
           <div>
-            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Radius: {radiusKm} km
-            </label>
+            <label className={adminFormLabelClass}>Radius: {radiusKm} km</label>
             <input
               type="range"
               min={1}
@@ -159,14 +164,12 @@ export function UserTrafficDashboard() {
             />
           </div>
 
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-700 dark:text-zinc-300">
-              Event type
-            </span>
+          <label className="block text-base">
+            <span className={`mb-1 block ${adminFormLabelClass}`}>Event type</span>
             <select
               value={eventTypeFilter}
               onChange={(event) => setEventTypeFilter(event.target.value as EventTypeFilter)}
-              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className={adminFormControlClass}
             >
               <option value="all">All events</option>
               <option value="accident">Accidents</option>
@@ -175,14 +178,12 @@ export function UserTrafficDashboard() {
             </select>
           </label>
 
-          <label className="block text-sm">
-            <span className="mb-1 block font-medium text-zinc-700 dark:text-zinc-300">
-              Report time
-            </span>
+          <label className="block text-base">
+            <span className={`mb-1 block ${adminFormLabelClass}`}>Report time</span>
             <select
               value={timeFilter}
               onChange={(event) => setTimeFilter(event.target.value as TimeFilter)}
-              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              className={adminFormControlClass}
             >
               {timeFilterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -192,37 +193,35 @@ export function UserTrafficDashboard() {
             </select>
           </label>
 
-          <div className="rounded-md bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
             {center
               ? `Center: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`
               : "No center selected yet. Click map or use current location."}
           </div>
 
-          <div className="rounded-md bg-zinc-100 p-2 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+          <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
             Showing {filteredEvents.length} incidents after radius + filter match.
           </div>
 
-          {loading ? <p className="text-xs text-zinc-500">Loading activities...</p> : null}
-          {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
-          {geoError ? <p className="text-xs text-red-600 dark:text-red-400">{geoError}</p> : null}
+          {loading ? (
+            <p className="text-base font-normal text-zinc-500">Loading activities...</p>
+          ) : null}
+          {error ? <p className={adminFormFieldErrorClass}>{error}</p> : null}
+          {geoError ? <p className={adminFormFieldErrorClass}>{geoError}</p> : null}
         </section>
 
         <section className="absolute bottom-4 right-4 top-4 z-[500] w-[22rem] rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/95">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-              Incident Feed
-            </h2>
-            <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+            <h2 className={adminPanelTitleClass}>Incident Feed</h2>
+            <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
               {filteredEvents.length}
             </span>
           </div>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Chronological alerts (newest first)
-          </p>
+          <p className={`mt-1 ${adminBodyMutedClass}`}>Chronological alerts (newest first)</p>
 
           <div className="mt-3 h-[calc(100%-3.5rem)] space-y-2 overflow-y-auto pr-1">
             {filteredEvents.length === 0 ? (
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-base font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                 No incidents match selected filters.
               </div>
             ) : (
@@ -232,10 +231,10 @@ export function UserTrafficDashboard() {
                   className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium capitalize text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold capitalize text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
                       {event.type ?? "incident"}
                     </span>
-                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    <span className="text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
                       {event.created_at
                         ? new Date(event.created_at).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -244,10 +243,10 @@ export function UserTrafficDashboard() {
                         : "Unknown"}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-300">
+                  <p className="mt-2 text-base font-normal leading-snug text-zinc-800 dark:text-zinc-200">
                     {event.description ?? "No description provided."}
                   </p>
-                  <p className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-2 text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
                     {event.location_lat.toFixed(5)}, {event.location_lng.toFixed(5)}
                   </p>
                 </article>
