@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { getAuthUser, getUserRole } from "@/services/client/auth";
+import { createUserTrafficToastChannel } from "@/services/client/traffic-events";
 import type { TrafficEvent } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/client";
 
 type ToastItem = {
   id: string;
@@ -16,12 +17,11 @@ function buildToastMessage(eventType: TrafficEvent["type"]) {
 }
 
 export function TrafficRealtimeToasts() {
-  const supabaseRef = useRef(createClient());
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const removeChannelRef = useRef<(() => Promise<"ok" | "timed out" | "error">) | null>(null);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   useEffect(() => {
-    const supabase = supabaseRef.current;
     let isCancelled = false;
 
     function pushToast(message: string) {
@@ -35,60 +35,39 @@ export function TrafficRealtimeToasts() {
     void (async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await getAuthUser();
 
       if (!user || isCancelled) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle<{ role: "admin" | "user" | null }>();
+      const { data: profile } = await getUserRole(user.id);
 
       // Only user-facing experience should receive these realtime toasts.
       if (profile?.role === "admin" || isCancelled) return;
 
-      const channelName = `user-traffic-toast-events-${user.id}-${crypto.randomUUID()}`;
-
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "traffic_events" },
-          (payload) => {
-            const incoming = payload.new as TrafficEvent;
-            if (incoming.status === "approved") {
-              pushToast(buildToastMessage(incoming.type));
-            }
-          },
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "traffic_events" },
-          (payload) => {
-            const incoming = payload.new as TrafficEvent;
-            const previous = payload.old as Partial<TrafficEvent>;
-            if (incoming.status === "approved" && previous.status !== "approved") {
-              pushToast(buildToastMessage(incoming.type));
-            }
-          },
-        )
-        .subscribe();
+      const { channel, remove } = createUserTrafficToastChannel({
+        userId: user.id,
+        onInsertApproved: (incoming) => {
+          pushToast(buildToastMessage(incoming.type));
+        },
+        onUpdateToApproved: (incoming) => {
+          pushToast(buildToastMessage(incoming.type));
+        },
+      });
 
       if (isCancelled) {
-        void supabase.removeChannel(channel);
+        void remove();
         return;
       }
 
       channelRef.current = channel;
+      removeChannelRef.current = remove;
     })();
 
     return () => {
       isCancelled = true;
-      if (channelRef.current) {
-        void supabase.removeChannel(channelRef.current);
-      }
+      if (channelRef.current && removeChannelRef.current) void removeChannelRef.current();
       channelRef.current = null;
+      removeChannelRef.current = null;
     };
   }, []);
 

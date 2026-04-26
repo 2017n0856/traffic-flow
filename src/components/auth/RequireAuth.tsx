@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { getAuthSession } from "@/services/client/auth";
 
 type Props = { children: React.ReactNode };
 
@@ -11,9 +11,7 @@ export function RequireAuth({ children }: Props) {
   const [status, setStatus] = useState<"checking" | "authorized">("checking");
 
   useEffect(() => {
-    const supabase = createClient();
-
-    void supabase.auth.getSession().then(({ data }) => {
+    void getAuthSession().then(({ data }) => {
       if (!data.session) {
         router.replace("/sign-in");
         return;

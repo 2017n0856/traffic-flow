@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { reportIncident } from "@/services/client/incidents";
 import {
   adminBodyMutedClass,
   adminFormControlClass,
@@ -111,23 +112,13 @@ export function IncidentReportForm({
     }
 
     try {
-      const response = await fetch("/api/incidents/report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type,
-          description,
-          locationLat: selectedCoordinates.lat,
-          locationLng: selectedCoordinates.lng,
-          defaultStatus,
-        }),
+      const { response, body: payload } = await reportIncident({
+        type,
+        description,
+        locationLat: selectedCoordinates.lat,
+        locationLng: selectedCoordinates.lng,
+        defaultStatus,
       });
-
-      const payload = (await response.json()) as {
-        error?: string;
-        status?: "pending" | "approved";
-        autoApproved?: boolean;
-      };
 
       if (!response.ok) {
         setError(payload.error ?? "Failed to submit incident.");

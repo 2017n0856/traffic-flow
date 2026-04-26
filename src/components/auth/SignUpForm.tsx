@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { signUpWithPassword } from "@/services/client/auth";
 import {
   normalizePhoneDigits,
   validateEmail,
@@ -63,16 +63,11 @@ export function SignUpForm() {
 
     setPending(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const { error } = await signUpWithPassword({
         email: email.trim(),
         password,
-        options: {
-          data: {
-            full_name: name.trim(),
-            phone: normalizePhoneDigits(phone),
-          },
-        },
+        fullName: name.trim(),
+        phone: normalizePhoneDigits(phone),
       });
 
       if (error) {

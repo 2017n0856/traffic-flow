@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import {
+  approveTrafficEvent,
+  createAdminModerationRealtimeChannel,
+  deleteTrafficEvent,
+  fetchModerationEvents,
+} from "@/services/client/traffic-events";
 import type { TrafficEvent } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/client";
 
 function upsertEvent(current: TrafficEvent[], incoming: TrafficEvent) {
   const index = current.findIndex((item) => item.id === incoming.id);
@@ -14,8 +19,8 @@ function upsertEvent(current: TrafficEvent[], incoming: TrafficEvent) {
 }
 
 export function useAdminModeration() {
-  const supabaseRef = useRef(createClient());
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const removeChannelRef = useRef<(() => Promise<"ok" | "timed out" | "error">) | null>(null);
   const [pendingEvents, setPendingEvents] = useState<TrafficEvent[]>([]);
   const [approvedEvents, setApprovedEvents] = useState<TrafficEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,11 +29,7 @@ export function useAdminModeration() {
   const loadEvents = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: queryError } = await supabaseRef.current
-      .from("traffic_events")
-      .select("*")
-      .in("status", ["pending", "approved"])
-      .order("created_at", { ascending: false });
+    const { data, error: queryError } = await fetchModerationEvents();
 
     if (queryError) {
       setError(queryError.message);
@@ -43,10 +44,7 @@ export function useAdminModeration() {
   }, []);
 
   const approveEvent = useCallback(async (id: string) => {
-    const { error: updateError } = await supabaseRef.current
-      .from("traffic_events")
-      .update({ status: "approved" })
-      .eq("id", id);
+    const { error: updateError } = await approveTrafficEvent(id);
 
     if (updateError) throw updateError;
     setPendingEvents((current) => {
@@ -61,10 +59,7 @@ export function useAdminModeration() {
   }, []);
 
   const deleteEvent = useCallback(async (id: string) => {
-    const { error: deleteError } = await supabaseRef.current
-      .from("traffic_events")
-      .delete()
-      .eq("id", id);
+    const { error: deleteError } = await deleteTrafficEvent(id);
 
     if (deleteError) throw deleteError;
     setPendingEvents((current) => current.filter((event) => event.id !== id));
@@ -78,59 +73,42 @@ export function useAdminModeration() {
   }, [loadEvents]);
 
   useEffect(() => {
-    const supabase = supabaseRef.current;
-    const channel = supabase
-      .channel("admin-pending-traffic-events")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "traffic_events" },
-        (payload) => {
-          const incoming = payload.new as TrafficEvent;
-          if (incoming.status === "pending") {
-            setPendingEvents((current) => upsertEvent(current, incoming));
-          }
-          if (incoming.status === "approved") {
-            setApprovedEvents((current) => upsertEvent(current, incoming));
-          }
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "traffic_events" },
-        (payload) => {
-          const incoming = payload.new as TrafficEvent;
-          if (incoming.status === "pending") {
-            setPendingEvents((current) => upsertEvent(current, incoming));
-            setApprovedEvents((current) => current.filter((event) => event.id !== incoming.id));
-            return;
-          }
-          if (incoming.status === "approved") {
-            setApprovedEvents((current) => upsertEvent(current, incoming));
-            setPendingEvents((current) => current.filter((event) => event.id !== incoming.id));
-            return;
-          }
-          setPendingEvents((current) => current.filter((event) => event.id !== incoming.id));
+    const { channel, remove } = createAdminModerationRealtimeChannel({
+      onInsert: (incoming) => {
+        if (incoming.status === "pending") {
+          setPendingEvents((current) => upsertEvent(current, incoming));
+        }
+        if (incoming.status === "approved") {
+          setApprovedEvents((current) => upsertEvent(current, incoming));
+        }
+      },
+      onUpdate: (incoming) => {
+        if (incoming.status === "pending") {
+          setPendingEvents((current) => upsertEvent(current, incoming));
           setApprovedEvents((current) => current.filter((event) => event.id !== incoming.id));
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "DELETE", schema: "public", table: "traffic_events" },
-        (payload) => {
-          const deletedId = String(payload.old.id);
-          setPendingEvents((current) => current.filter((event) => event.id !== deletedId));
-          setApprovedEvents((current) => current.filter((event) => event.id !== deletedId));
-        },
-      )
-      .subscribe();
+          return;
+        }
+        if (incoming.status === "approved") {
+          setApprovedEvents((current) => upsertEvent(current, incoming));
+          setPendingEvents((current) => current.filter((event) => event.id !== incoming.id));
+          return;
+        }
+        setPendingEvents((current) => current.filter((event) => event.id !== incoming.id));
+        setApprovedEvents((current) => current.filter((event) => event.id !== incoming.id));
+      },
+      onDelete: (deletedId) => {
+        setPendingEvents((current) => current.filter((event) => event.id !== deletedId));
+        setApprovedEvents((current) => current.filter((event) => event.id !== deletedId));
+      },
+    });
 
     channelRef.current = channel;
+    removeChannelRef.current = remove;
 
     return () => {
-      if (channelRef.current) {
-        void supabase.removeChannel(channelRef.current);
-      }
+      if (channelRef.current && removeChannelRef.current) void removeChannelRef.current();
       channelRef.current = null;
+      removeChannelRef.current = null;
     };
   }, []);
 

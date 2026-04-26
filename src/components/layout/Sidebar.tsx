@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { SignOutButton } from "@/components/layout/SignOutButton";
-import { createClient } from "@/utils/supabase/client";
+import { getAuthUser, getUserRole } from "@/services/client/auth";
 
 type NavRole = "admin" | "user" | null;
 
@@ -26,20 +26,14 @@ export function Sidebar() {
   const [role, setRole] = useState<NavRole>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-
-    void supabase.auth.getUser().then(async ({ data }) => {
+    void getAuthUser().then(async ({ data }) => {
       const userId = data.user?.id;
       if (!userId) {
         setRole("user");
         return;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .maybeSingle<{ role: "admin" | "user" | null }>();
+      const { data: profile } = await getUserRole(userId);
 
       setRole(profile?.role === "admin" ? "admin" : "user");
     });

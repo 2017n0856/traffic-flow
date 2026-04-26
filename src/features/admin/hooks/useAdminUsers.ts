@@ -1,12 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { fetchAdminUsers } from "@/services/client/admin-users";
 import type { Profile } from "@/types/supabase";
-
-type UsersResponse = {
-  users: Profile[];
-  currentUserId: string;
-};
 
 export function useAdminUsers() {
   const [users, setUsers] = useState<Profile[]>([]);
@@ -19,8 +15,7 @@ export function useAdminUsers() {
     setError(null);
 
     try {
-      const response = await fetch("/api/admin/users", { cache: "no-store" });
-      const payload = (await response.json()) as UsersResponse & { error?: string };
+      const { response, payload } = await fetchAdminUsers();
       if (!response.ok) {
         throw new Error(payload.error ?? "Failed to load users.");
       }

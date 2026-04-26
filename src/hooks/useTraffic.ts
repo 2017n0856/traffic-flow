@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase/client";
+import {
+  createTrafficEventsRealtimeChannel,
+  fetchActivitiesInRadius,
+} from "@/services/client/traffic-events";
 import type { TrafficEvent } from "@/types/supabase";
 
 function isApprovedEvent(event: TrafficEvent) {
@@ -19,8 +22,8 @@ function upsertById(current: TrafficEvent[], incoming: TrafficEvent) {
 }
 
 export function useTraffic() {
-  const supabaseRef = useRef(createClient());
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
+  const removeChannelRef = useRef<(() => Promise<"ok" | "timed out" | "error">) | null>(null);
 
   const [events, setEvents] = useState<TrafficEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,14 +34,7 @@ export function useTraffic() {
       setLoading(true);
       setError(null);
 
-      const { data, error: rpcError } = await supabaseRef.current.rpc(
-        "get_activities_in_radius",
-        {
-          user_lat: lat,
-          user_lng: lng,
-          radius_km: radiusKm,
-        },
-      );
+      const { data, error: rpcError } = await fetchActivitiesInRadius(lat, lng, radiusKm);
 
       if (rpcError) {
         setError(rpcError.message);
@@ -57,39 +53,27 @@ export function useTraffic() {
   const subscribeToTraffic = useCallback(() => {
     if (subscriptionRef.current) return subscriptionRef.current;
 
-    const channel = supabaseRef.current
-      .channel("traffic-events-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "traffic_events" },
-        (payload) => {
-          const incoming = payload.new as TrafficEvent;
-          setEvents((current) => upsertById(current, incoming));
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "traffic_events" },
-        (payload) => {
-          const incoming = payload.new as TrafficEvent;
-          setEvents((current) => upsertById(current, incoming));
-        },
-      )
-      .subscribe();
+    const { channel, remove } = createTrafficEventsRealtimeChannel({
+      onInsert: (incoming) => {
+        setEvents((current) => upsertById(current, incoming));
+      },
+      onUpdate: (incoming) => {
+        setEvents((current) => upsertById(current, incoming));
+      },
+    });
 
     subscriptionRef.current = channel;
+    removeChannelRef.current = remove;
     return channel;
   }, []);
 
   useEffect(() => {
-    const supabase = supabaseRef.current;
     const channel = subscribeToTraffic();
 
     return () => {
-      if (channel) {
-        void supabase.removeChannel(channel);
-      }
+      if (channel && removeChannelRef.current) void removeChannelRef.current();
       subscriptionRef.current = null;
+      removeChannelRef.current = null;
     };
   }, [subscribeToTraffic]);
 

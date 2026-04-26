@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { signInWithPassword } from "@/services/client/auth";
 import { validateEmail, validatePasswordLogin } from "@/lib/auth/validation";
 import {
   bodyMutedClass,
@@ -50,11 +50,7 @@ export function SignInForm() {
 
     setPending(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const { error } = await signInWithPassword(email.trim(), password);
 
       if (error) {
         setFormError(error.message);

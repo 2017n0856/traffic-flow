@@ -2,14 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { getAuthSession } from "@/services/client/auth";
 
 export function HomeRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-    void supabase.auth.getSession().then(({ data }) => {
+    void getAuthSession().then(({ data }) => {
       if (data.session) {
         router.replace("/dashboard");
       } else {
