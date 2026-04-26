@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
 import {
   adminBodyMutedClass,
   adminFormControlClass,
@@ -112,29 +111,36 @@ export function IncidentReportForm({
     }
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      const { error: insertError } = await supabase.from("traffic_events").insert({
-        type,
-        description: description.trim() || null,
-        status: defaultStatus,
-        is_predicted: false,
-        location_lat: selectedCoordinates.lat,
-        location_lng: selectedCoordinates.lng,
-        reported_by: user?.id ?? null,
+      const response = await fetch("/api/incidents/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          description,
+          locationLat: selectedCoordinates.lat,
+          locationLng: selectedCoordinates.lng,
+          defaultStatus,
+        }),
       });
 
-      if (insertError) {
-        setError(insertError.message);
+      const payload = (await response.json()) as {
+        error?: string;
+        status?: "pending" | "approved";
+        autoApproved?: boolean;
+      };
+
+      if (!response.ok) {
+        setError(payload.error ?? "Failed to submit incident.");
         return;
       }
 
       setDescription("");
       setSelectedCoordinates(null);
-      setMessage(successMessage);
+      setMessage(
+        payload.autoApproved
+          ? "Incident submitted and auto-approved based on nearby matching reports."
+          : successMessage,
+      );
     } finally {
       setPending(false);
     }

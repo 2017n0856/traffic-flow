@@ -22,6 +22,7 @@ export function TrafficRealtimeToasts() {
 
   useEffect(() => {
     const supabase = supabaseRef.current;
+    let isCancelled = false;
 
     function pushToast(message: string) {
       const id = crypto.randomUUID();
@@ -36,7 +37,7 @@ export function TrafficRealtimeToasts() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user || isCancelled) return;
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -45,10 +46,12 @@ export function TrafficRealtimeToasts() {
         .maybeSingle<{ role: "admin" | "user" | null }>();
 
       // Only user-facing experience should receive these realtime toasts.
-      if (profile?.role === "admin") return;
+      if (profile?.role === "admin" || isCancelled) return;
+
+      const channelName = `user-traffic-toast-events-${user.id}-${crypto.randomUUID()}`;
 
       const channel = supabase
-        .channel("user-traffic-toast-events")
+        .channel(channelName)
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "traffic_events" },
@@ -72,10 +75,16 @@ export function TrafficRealtimeToasts() {
         )
         .subscribe();
 
+      if (isCancelled) {
+        void supabase.removeChannel(channel);
+        return;
+      }
+
       channelRef.current = channel;
     })();
 
     return () => {
+      isCancelled = true;
       if (channelRef.current) {
         void supabase.removeChannel(channelRef.current);
       }
