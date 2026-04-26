@@ -129,7 +129,7 @@ export function UserTrafficDashboard() {
         </p>
       </div>
 
-      <div className="relative h-[calc(100vh-14rem)] min-h-[36rem]">
+      <div className="relative h-[52vh] min-h-[20rem] lg:h-[calc(100vh-14rem)] lg:min-h-[36rem]">
         <TrafficDashboardMap
           center={center}
           focusCoordinates={focusCoordinates}
@@ -141,7 +141,7 @@ export function UserTrafficDashboard() {
           }}
         />
 
-        <section className="absolute left-4 top-4 z-[500] w-80 space-y-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/95">
+        <section className="z-[500] mt-4 w-full space-y-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:left-4 lg:top-4 lg:mt-0 lg:w-80 dark:border-zinc-700 dark:bg-zinc-950/95">
           <button
             type="button"
             onClick={useCurrentLocation}
@@ -210,7 +210,7 @@ export function UserTrafficDashboard() {
           {geoError ? <p className={adminFormFieldErrorClass}>{geoError}</p> : null}
         </section>
 
-        <section className="absolute bottom-4 right-4 top-4 z-[500] w-[22rem] rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/95">
+        <section className="z-[500] mt-4 w-full rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:bottom-4 lg:right-4 lg:top-4 lg:mt-0 lg:w-[22rem] dark:border-zinc-700 dark:bg-zinc-950/95">
           <div className="flex items-center justify-between">
             <h2 className={adminPanelTitleClass}>Incident Feed</h2>
             <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
@@ -219,7 +219,7 @@ export function UserTrafficDashboard() {
           </div>
           <p className={`mt-1 ${adminBodyMutedClass}`}>Chronological alerts (newest first)</p>
 
-          <div className="mt-3 h-[calc(100%-3.5rem)] space-y-2 overflow-y-auto pr-1">
+          <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1 lg:h-[calc(100%-3.5rem)] lg:max-h-none">
             {filteredEvents.length === 0 ? (
               <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-base font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                 No incidents match selected filters.

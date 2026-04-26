@@ -59,7 +59,7 @@ export function PendingReportsPanel({
             key={event.id}
             className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-sm font-semibold ${getTypeBadgeClass(event.type)}`}
@@ -80,18 +80,18 @@ export function PendingReportsPanel({
                     : "Unknown"}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
                 <button
                   type="button"
                   onClick={() => void onApprove(event.id)}
-                  className="rounded-md bg-emerald-600 px-3 py-2 text-base font-medium text-white hover:bg-emerald-500"
+                  className="flex-1 rounded-md bg-emerald-600 px-3 py-2 text-base font-medium text-white hover:bg-emerald-500 sm:flex-none"
                 >
                   Approve
                 </button>
                 <button
                   type="button"
                   onClick={() => void onDelete(event.id)}
-                  className="rounded-md bg-red-600 px-3 py-2 text-base font-medium text-white hover:bg-red-500"
+                  className="flex-1 rounded-md bg-red-600 px-3 py-2 text-base font-medium text-white hover:bg-red-500 sm:flex-none"
                 >
                   Delete
                 </button>

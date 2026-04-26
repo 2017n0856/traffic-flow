@@ -71,7 +71,7 @@ export function IncidentMapPicker({
   }, [selected]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-300 dark:border-zinc-700">
+    <div className="relative z-0 overflow-hidden rounded-lg border border-zinc-300 dark:border-zinc-700">
       <MapContainer
         center={center}
         zoom={12}

@@ -187,7 +187,7 @@ export function IncidentReportForm({
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`min-h-[20rem] ${controlClass}`}
+              className={`min-h-[12rem] sm:min-h-[16rem] lg:min-h-[20rem] ${controlClass}`}
               placeholder="Describe what happened..."
             />
           </label>

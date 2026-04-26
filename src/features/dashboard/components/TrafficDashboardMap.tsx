@@ -82,7 +82,7 @@ export function TrafficDashboardMap({
   }, [center]);
 
   return (
-    <div className="h-full w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+    <div className="relative z-0 h-full w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
       <MapContainer center={mapCenter} zoom={12} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
