@@ -157,125 +157,151 @@ export function UserTrafficDashboard() {
           }}
         />
 
-        <section className="z-[500] mt-4 w-full space-y-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:left-4 lg:top-4 lg:mt-0 lg:w-80 dark:border-zinc-700 dark:bg-zinc-950/95">
-          <button
-            type="button"
-            onClick={useCurrentLocation}
-            disabled={locating}
-            className={`w-full ${largeSecondaryButtonClass} disabled:opacity-60`}
-          >
-            {locating ? "Locating..." : "Use current location"}
-          </button>
-
-          <div>
-            <label className={adminFormLabelClass}>Radius: {radiusKm} km</label>
-            <input
-              type="range"
-              min={1}
-              max={25}
-              step={1}
-              value={radiusKm}
-              onChange={(event) => setRadiusKm(Number(event.target.value))}
-              className="mt-2 w-full"
-            />
-          </div>
-
-          <label className="block text-base">
-            <span className={`mb-1 block ${adminFormLabelClass}`}>Event type</span>
-            <select
-              value={eventTypeFilter}
-              onChange={(event) => setEventTypeFilter(event.target.value as EventTypeFilter)}
-              className={adminFormControlClass}
-            >
-              <option value="all">All events</option>
-              <option value="accident">Accidents</option>
-              <option value="closure">Closures</option>
-              <option value="congestion">Congestion</option>
-            </select>
-          </label>
-
-          <label className="block text-base">
-            <span className={`mb-1 block ${adminFormLabelClass}`}>Report time</span>
-            <select
-              value={timeFilter}
-              onChange={(event) => setTimeFilter(event.target.value as TimeFilter)}
-              className={adminFormControlClass}
-            >
-              {timeFilterOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
-            {center
-              ? `Center: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`
-              : "No center selected yet. Click map or use current location."}
-          </div>
-
-          <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
-            Showing {filteredEvents.length} incidents after radius + filter match.
-          </div>
-
-          <TrafficForecastPanel
-            horizon={horizon}
-            onHorizonChange={setHorizon}
-            forecasts={forecasts}
-            loading={forecastLoading}
-            error={forecastError}
-          />
-
-          {loading ? (
-            <p className="text-base font-normal text-zinc-500">Loading activities...</p>
-          ) : null}
-          {error ? <p className={adminFormFieldErrorClass}>{error}</p> : null}
-          {geoError ? <p className={adminFormFieldErrorClass}>{geoError}</p> : null}
-        </section>
-
-        <section className="z-[500] mt-4 w-full rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:bottom-4 lg:right-4 lg:top-4 lg:mt-0 lg:w-[22rem] dark:border-zinc-700 dark:bg-zinc-950/95">
-          <div className="flex items-center justify-between">
-            <h2 className={adminPanelTitleClass}>Incident Feed</h2>
+        <section className="group z-[500] mt-4 w-full space-y-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:bottom-4 lg:left-4 lg:top-4 lg:mt-0 lg:w-14 lg:overflow-hidden lg:p-3 lg:transition-all lg:duration-200 lg:hover:w-80 lg:hover:p-4 dark:border-zinc-700 dark:bg-zinc-950/95">
+          <div className="hidden h-full flex-col items-center justify-between py-2 lg:flex lg:group-hover:hidden">
+            <span className="rotate-180 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 [writing-mode:vertical-rl] dark:text-zinc-400">
+              Filters
+            </span>
             <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
               {filteredEvents.length}
             </span>
           </div>
-          <p className={`mt-1 ${adminBodyMutedClass}`}>Chronological alerts (newest first)</p>
 
-          <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1 lg:h-[calc(100%-3.5rem)] lg:max-h-none">
-            {filteredEvents.length === 0 ? (
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-base font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-                No incidents match selected filters.
+          <div className="mt-0 lg:pointer-events-none lg:absolute lg:inset-0 lg:opacity-0 lg:transition-opacity lg:duration-200 lg:group-hover:pointer-events-auto lg:group-hover:opacity-100 lg:p-4">
+            <div className="space-y-3 lg:h-full lg:overflow-y-auto lg:pr-1">
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={locating}
+                className={`w-full ${largeSecondaryButtonClass} disabled:opacity-60`}
+              >
+                {locating ? "Locating..." : "Use current location"}
+              </button>
+
+              <div>
+                <label className={adminFormLabelClass}>Radius: {radiusKm} km</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={25}
+                  step={1}
+                  value={radiusKm}
+                  onChange={(event) => setRadiusKm(Number(event.target.value))}
+                  className="mt-2 w-full"
+                />
               </div>
-            ) : (
-              filteredEvents.map((event) => (
-                <article
-                  key={event.id}
-                  className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+
+              <label className="block text-base">
+                <span className={`mb-1 block ${adminFormLabelClass}`}>Event type</span>
+                <select
+                  value={eventTypeFilter}
+                  onChange={(event) => setEventTypeFilter(event.target.value as EventTypeFilter)}
+                  className={adminFormControlClass}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold capitalize text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
-                      {event.type ?? "incident"}
-                    </span>
-                    <span className="text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
-                      {event.created_at
-                        ? new Date(event.created_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "Unknown"}
-                    </span>
+                  <option value="all">All events</option>
+                  <option value="accident">Accidents</option>
+                  <option value="closure">Closures</option>
+                  <option value="congestion">Congestion</option>
+                </select>
+              </label>
+
+              <label className="block text-base">
+                <span className={`mb-1 block ${adminFormLabelClass}`}>Report time</span>
+                <select
+                  value={timeFilter}
+                  onChange={(event) => setTimeFilter(event.target.value as TimeFilter)}
+                  className={adminFormControlClass}
+                >
+                  {timeFilterOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                {center
+                  ? `Center: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`
+                  : "No center selected yet. Click map or use current location."}
+              </div>
+
+              <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                Showing {filteredEvents.length} incidents after radius + filter match.
+              </div>
+
+              <TrafficForecastPanel
+                horizon={horizon}
+                onHorizonChange={setHorizon}
+                forecasts={forecasts}
+                loading={forecastLoading}
+                error={forecastError}
+              />
+
+              {loading ? (
+                <p className="text-base font-normal text-zinc-500">Loading activities...</p>
+              ) : null}
+              {error ? <p className={adminFormFieldErrorClass}>{error}</p> : null}
+              {geoError ? <p className={adminFormFieldErrorClass}>{geoError}</p> : null}
+            </div>
+          </div>
+        </section>
+
+        <section className="group z-[500] mt-4 w-full rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:bottom-4 lg:right-4 lg:top-4 lg:mt-0 lg:w-14 lg:overflow-hidden lg:p-3 lg:transition-all lg:duration-200 lg:hover:w-[22rem] lg:hover:p-4 dark:border-zinc-700 dark:bg-zinc-950/95">
+          <div className="hidden h-full flex-col items-center justify-between py-2 lg:flex lg:group-hover:hidden">
+            <span className="rotate-180 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 [writing-mode:vertical-rl] dark:text-zinc-400">
+              Feed
+            </span>
+            <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+              {filteredEvents.length}
+            </span>
+          </div>
+
+          <div className="mt-0 lg:pointer-events-none lg:absolute lg:inset-0 lg:opacity-0 lg:transition-opacity lg:duration-200 lg:group-hover:pointer-events-auto lg:group-hover:opacity-100">
+            <div className="h-full p-0 lg:p-4">
+              <div className="flex items-center justify-between">
+                <h2 className={adminPanelTitleClass}>Incident Feed</h2>
+                <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold tabular-nums text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                  {filteredEvents.length}
+                </span>
+              </div>
+              <p className={`mt-1 ${adminBodyMutedClass}`}>Chronological alerts (newest first)</p>
+
+              <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1 lg:h-[calc(100%-3.5rem)] lg:max-h-none">
+                {filteredEvents.length === 0 ? (
+                  <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-base font-normal text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                    No incidents match selected filters.
                   </div>
-                  <p className="mt-2 text-base font-normal leading-snug text-zinc-800 dark:text-zinc-200">
-                    {event.description ?? "No description provided."}
-                  </p>
-                  <p className="mt-2 text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
-                    {event.location_lat.toFixed(5)}, {event.location_lng.toFixed(5)}
-                  </p>
-                </article>
-              ))
-            )}
+                ) : (
+                  filteredEvents.map((event) => (
+                    <article
+                      key={event.id}
+                      className="rounded-md border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-950"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="rounded-full bg-zinc-100 px-2 py-1 text-sm font-semibold capitalize text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                          {event.type ?? "incident"}
+                        </span>
+                        <span className="text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
+                          {event.created_at
+                            ? new Date(event.created_at).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Unknown"}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-base font-normal leading-snug text-zinc-800 dark:text-zinc-200">
+                        {event.description ?? "No description provided."}
+                      </p>
+                      <p className="mt-2 text-sm font-normal tabular-nums text-zinc-500 dark:text-zinc-400">
+                        {event.location_lat.toFixed(5)}, {event.location_lng.toFixed(5)}
+                      </p>
+                    </article>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </section>
       </div>
