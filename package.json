@@ -9,7 +9,10 @@
     "build": "next build",
     "start": "npm run supabase:check && next start",
     "lint": "eslint",
-    "supabase:check": "node scripts/check-supabase-connection.mjs"
+    "supabase:check": "node scripts/check-supabase-connection.mjs",
+    "forecast:run": "node scripts/run-forecast.mjs",
+    "forecast:backfill": "node scripts/run-forecast.mjs",
+    "forecast:calibrate": "node scripts/calibrate-forecast.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",

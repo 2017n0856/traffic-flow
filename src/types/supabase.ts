@@ -74,6 +74,53 @@ export interface Database {
           },
         ];
       };
+      traffic_forecasts: {
+        Row: {
+          id: string;
+          created_at: string;
+          generated_at: string;
+          horizon_minutes: 15 | 30 | 60;
+          zone_key: string;
+          center_lat: number;
+          center_lng: number;
+          forecast_score: number;
+          forecast_level: "low" | "medium" | "high";
+          confidence: number;
+          source: string;
+          valid_from: string;
+          valid_until: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          generated_at: string;
+          horizon_minutes: 15 | 30 | 60;
+          zone_key: string;
+          center_lat: number;
+          center_lng: number;
+          forecast_score: number;
+          forecast_level: "low" | "medium" | "high";
+          confidence: number;
+          source?: string;
+          valid_from: string;
+          valid_until: string;
+        };
+        Update: {
+          created_at?: string;
+          generated_at?: string;
+          horizon_minutes?: 15 | 30 | 60;
+          zone_key?: string;
+          center_lat?: number;
+          center_lng?: number;
+          forecast_score?: number;
+          forecast_level?: "low" | "medium" | "high";
+          confidence?: number;
+          source?: string;
+          valid_from?: string;
+          valid_until?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -85,6 +132,15 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["traffic_events"]["Row"][];
       };
+      get_forecasts_in_radius: {
+        Args: {
+          user_lat: number;
+          user_lng: number;
+          radius_km: number;
+          requested_horizon: number;
+        };
+        Returns: Database["public"]["Tables"]["traffic_forecasts"]["Row"][];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -93,3 +149,4 @@ export interface Database {
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type TrafficEvent = Database["public"]["Tables"]["traffic_events"]["Row"];
+export type TrafficForecast = Database["public"]["Tables"]["traffic_forecasts"]["Row"];

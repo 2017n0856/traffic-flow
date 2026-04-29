@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import L from "leaflet";
 import {
   Circle,
+  CircleMarker,
   MapContainer,
   Marker,
   Popup,
@@ -11,7 +12,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
-import type { TrafficEvent } from "@/types/supabase";
+import type { TrafficEvent, TrafficForecast } from "@/types/supabase";
 
 type Coordinates = {
   lat: number;
@@ -23,6 +24,7 @@ type TrafficDashboardMapProps = {
   focusCoordinates?: Coordinates | null;
   radiusKm: number;
   markers: TrafficEvent[];
+  forecasts?: TrafficForecast[];
   onCenterChange: (coordinates: Coordinates) => void;
 };
 
@@ -51,6 +53,27 @@ function getEventIcon(type: TrafficEvent["type"]) {
   });
 }
 
+function getForecastColor(level: TrafficForecast["forecast_level"]) {
+  if (level === "high") return "#dc2626";
+  if (level === "medium") return "#f59e0b";
+  return "#22c55e";
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceKm(from: Coordinates, to: Coordinates) {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(to.lat - from.lat);
+  const dLng = toRadians(to.lng - from.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(from.lat)) * Math.cos(toRadians(to.lat)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
 function CenterSelector({ onCenterChange }: { onCenterChange: (coordinates: Coordinates) => void }) {
   useMapEvents({
     click(event) {
@@ -74,12 +97,46 @@ export function TrafficDashboardMap({
   focusCoordinates,
   radiusKm,
   markers,
+  forecasts = [],
   onCenterChange,
 }: TrafficDashboardMapProps) {
   const mapCenter = useMemo<[number, number]>(() => {
     if (!center) return SYDNEY_COORDINATES;
     return [center.lat, center.lng];
   }, [center]);
+
+  const snappedForecasts = useMemo(() => {
+    if (markers.length === 0) return forecasts.map((forecast) => ({ forecast, snappedToIncident: false }));
+
+    return forecasts.map((forecast) => {
+      const forecastPoint = { lat: forecast.center_lat, lng: forecast.center_lng };
+      let nearest: TrafficEvent | null = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      for (const marker of markers) {
+        const markerPoint = { lat: marker.location_lat, lng: marker.location_lng };
+        const distance = distanceKm(forecastPoint, markerPoint);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearest = marker;
+        }
+      }
+
+      // Keep original center when no nearby incident marker exists.
+      if (!nearest || nearestDistance > 2) {
+        return { forecast, snappedToIncident: false };
+      }
+
+      return {
+        forecast: {
+          ...forecast,
+          center_lat: nearest.location_lat,
+          center_lng: nearest.location_lng,
+        },
+        snappedToIncident: true,
+      };
+    });
+  }, [forecasts, markers]);
 
   return (
     <div className="relative z-0 h-full w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -124,6 +181,36 @@ export function TrafficDashboardMap({
               </div>
             </Popup>
           </Marker>
+        ))}
+
+        {snappedForecasts.map(({ forecast, snappedToIncident }) => (
+          <CircleMarker
+            key={`${forecast.zone_key}-${forecast.horizon_minutes}-${forecast.generated_at}`}
+            center={[forecast.center_lat, forecast.center_lng]}
+            radius={9}
+            pathOptions={{
+              color: getForecastColor(forecast.forecast_level),
+              fillColor: getForecastColor(forecast.forecast_level),
+              fillOpacity: 0.45,
+            }}
+          >
+            <Popup>
+              <div className="text-base">
+                <p className="font-semibold capitalize leading-tight text-zinc-900">
+                  Forecast {forecast.forecast_level}
+                </p>
+                <p className="mt-1 font-normal leading-snug text-zinc-800">
+                  Score {forecast.forecast_score.toFixed(1)} / 100
+                </p>
+                <p className="mt-1 text-sm font-normal text-zinc-500">
+                  Confidence {(forecast.confidence * 100).toFixed(0)}%
+                </p>
+                <p className="mt-1 text-sm font-normal text-zinc-500">
+                  {snappedToIncident ? "Display anchored to nearest incident location" : "Display at forecast zone center"}
+                </p>
+              </div>
+            </Popup>
+          </CircleMarker>
         ))}
       </MapContainer>
     </div>

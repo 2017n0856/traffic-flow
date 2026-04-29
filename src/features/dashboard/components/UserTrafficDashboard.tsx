@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TrafficDashboardMap } from "@/features/dashboard/components/TrafficDashboardMap";
 import { useTraffic } from "@/hooks/useTraffic";
+import { useTrafficForecast } from "@/hooks/useTrafficForecast";
 import type { TrafficEvent } from "@/types/supabase";
 import {
   adminBodyMutedClass,
@@ -13,6 +14,7 @@ import {
   adminPanelTitleClass,
   largeSecondaryButtonClass,
 } from "@/lib/ui/form";
+import { TrafficForecastPanel } from "@/features/dashboard/components/TrafficForecastPanel";
 
 type Coordinates = {
   lat: number;
@@ -79,11 +81,24 @@ export function UserTrafficDashboard() {
   const [locating, setLocating] = useState(false);
 
   const { alertCenterEvents, loading, error, fetchNearbyActivities } = useTraffic();
+  const {
+    horizon,
+    setHorizon,
+    forecasts,
+    loading: forecastLoading,
+    error: forecastError,
+    fetchForecasts,
+  } = useTrafficForecast();
 
   useEffect(() => {
     if (!center) return;
     void fetchNearbyActivities(center.lat, center.lng, radiusKm);
   }, [center, fetchNearbyActivities, radiusKm]);
+
+  useEffect(() => {
+    if (!center) return;
+    void fetchForecasts(center, radiusKm);
+  }, [center, fetchForecasts, radiusKm, horizon]);
 
   const filteredEvents = useMemo(
     () =>
@@ -135,6 +150,7 @@ export function UserTrafficDashboard() {
           focusCoordinates={focusCoordinates}
           radiusKm={radiusKm}
           markers={filteredEvents}
+          forecasts={forecasts}
           onCenterChange={(coordinates) => {
             setCenter(coordinates);
             setFocusCoordinates(coordinates);
@@ -202,6 +218,14 @@ export function UserTrafficDashboard() {
           <div className="rounded-md bg-zinc-100 p-2 text-sm font-normal leading-relaxed text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
             Showing {filteredEvents.length} incidents after radius + filter match.
           </div>
+
+          <TrafficForecastPanel
+            horizon={horizon}
+            onHorizonChange={setHorizon}
+            forecasts={forecasts}
+            loading={forecastLoading}
+            error={forecastError}
+          />
 
           {loading ? (
             <p className="text-base font-normal text-zinc-500">Loading activities...</p>
