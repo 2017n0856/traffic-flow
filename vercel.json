@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/forecast/run",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}
