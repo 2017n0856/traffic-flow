@@ -50,6 +50,7 @@ FORECAST_BASE_URL=http://127.0.0.1:3000
 
 Notes:
 - `FORECAST_RUN_SECRET` should be a strong random string.
+- `CRON_SECRET` should be a strong random string used by Vercel Cron auth.
 - `FORECAST_BASE_URL` is useful when running forecast scripts against non-local environments.
 
 ## Setup and Run (in order)
@@ -91,6 +92,29 @@ In another terminal (with app still running):
 
 ```bash
 npm run forecast:run
+```
+
+### 6.1) Optional: schedule forecast generation with Vercel Cron
+
+- `vercel.json` includes a free Vercel cron schedule to call `/api/forecast/run` every 15 minutes.
+- The cron path uses `GET` + `Authorization: Bearer <CRON_SECRET>`.
+- Manual run is still supported and unchanged via `POST` + `x-forecast-secret`.
+- In Vercel project settings, add environment variables:
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `FORECAST_RUN_SECRET`
+  - `CRON_SECRET`
+
+`vercel.json`:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/forecast/run",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
 ```
 
 ### 7) Open the app
