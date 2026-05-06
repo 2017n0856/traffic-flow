@@ -32,6 +32,38 @@ export async function fetchActivitiesInRadius(lat: number, lng: number, radiusKm
   });
 }
 
+type CheckRouteIncidentsParams = {
+  from: string;
+  to: string;
+  bufferMeters?: number;
+};
+
+type RouteCoordinates = {
+  lat: number;
+  lng: number;
+};
+
+type CheckRouteIncidentsResponse = {
+  count: number;
+  bufferMeters: number;
+  from?: RouteCoordinates;
+  to?: RouteCoordinates;
+  route?: RouteCoordinates[];
+  incidents: TrafficEvent[];
+  error?: string;
+};
+
+export async function checkRouteIncidents(params: CheckRouteIncidentsParams) {
+  const response = await fetch("/api/incidents/route-check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+
+  const body = (await response.json()) as CheckRouteIncidentsResponse;
+  return { response, body };
+}
+
 export function createTrafficEventsRealtimeChannel(handlers: {
   onInsert: (incoming: TrafficEvent) => void;
   onUpdate: (incoming: TrafficEvent) => void;

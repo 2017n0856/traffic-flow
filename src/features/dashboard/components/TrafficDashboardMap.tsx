@@ -7,6 +7,7 @@ import {
   CircleMarker,
   MapContainer,
   Marker,
+  Polyline,
   Popup,
   TileLayer,
   useMap,
@@ -25,6 +26,10 @@ type TrafficDashboardMapProps = {
   radiusKm: number;
   markers: TrafficEvent[];
   forecasts?: TrafficForecast[];
+  routeFrom?: Coordinates | null;
+  routeTo?: Coordinates | null;
+  routePath?: Coordinates[];
+  routeIncidents?: TrafficEvent[];
   onCenterChange: (coordinates: Coordinates) => void;
 };
 
@@ -77,6 +82,10 @@ export function TrafficDashboardMap({
   radiusKm,
   markers,
   forecasts = [],
+  routeFrom,
+  routeTo,
+  routePath = [],
+  routeIncidents = [],
   onCenterChange,
 }: TrafficDashboardMapProps) {
   const mapCenter = useMemo<[number, number]>(() => {
@@ -158,6 +167,60 @@ export function TrafficDashboardMap({
             </Popup>
           </CircleMarker>
         ))}
+
+        {routeFrom ? (
+          <CircleMarker
+            center={[routeFrom.lat, routeFrom.lng]}
+            radius={7}
+            pathOptions={{ color: "#0ea5e9", fillColor: "#0ea5e9", fillOpacity: 0.95, weight: 2 }}
+          >
+            <Popup>Route start (From)</Popup>
+          </CircleMarker>
+        ) : null}
+
+        {routeTo ? (
+          <CircleMarker
+            center={[routeTo.lat, routeTo.lng]}
+            radius={7}
+            pathOptions={{ color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.95, weight: 2 }}
+          >
+            <Popup>Route end (To)</Popup>
+          </CircleMarker>
+        ) : null}
+
+        {routePath.length >= 2 ? (
+          <Polyline
+            positions={routePath.map((point) => [point.lat, point.lng])}
+            pathOptions={{ color: "#0ea5e9", weight: 5, opacity: 0.85 }}
+          />
+        ) : null}
+
+        {routeIncidents.map((event) => (
+          <CircleMarker
+            key={`route-incident-${event.id}`}
+            center={[event.location_lat, event.location_lng]}
+            radius={9}
+            pathOptions={{
+              color: "#facc15",
+              fillColor: "#facc15",
+              fillOpacity: 0.95,
+              weight: 3,
+            }}
+          >
+            <Popup>
+              <div className="text-base">
+                <p className="font-semibold leading-tight text-zinc-900">Incident on selected route</p>
+                <p className="mt-1 font-normal capitalize leading-snug text-zinc-800">
+                  {event.type ?? "incident"}
+                </p>
+                <p className="mt-1 text-sm font-normal text-zinc-500">
+                  {event.description ?? "No description provided."}
+                </p>
+              </div>
+            </Popup>
+          </CircleMarker>
+        ))}
+
       </MapContainer>
     </div>
   );

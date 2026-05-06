@@ -141,6 +141,23 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["traffic_forecasts"]["Row"][];
       };
+      get_incidents_on_route: {
+        Args: {
+          from_lat: number;
+          from_lng: number;
+          to_lat: number;
+          to_lng: number;
+          buffer_meters?: number;
+        };
+        Returns: Database["public"]["Tables"]["traffic_events"]["Row"][];
+      };
+      get_incidents_on_path: {
+        Args: {
+          route_geojson: Json;
+          buffer_meters?: number;
+        };
+        Returns: Database["public"]["Tables"]["traffic_events"]["Row"][];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

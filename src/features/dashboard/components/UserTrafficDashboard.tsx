@@ -5,6 +5,7 @@ import { TrafficDashboardMap } from "@/features/dashboard/components/TrafficDash
 import { useTraffic } from "@/hooks/useTraffic";
 import { useTrafficForecast } from "@/hooks/useTrafficForecast";
 import type { TrafficEvent } from "@/types/supabase";
+import { checkRouteIncidents } from "@/services/client/traffic-events";
 import {
   adminBodyMutedClass,
   adminFormControlClass,
@@ -19,6 +20,12 @@ import { TrafficForecastPanel } from "@/features/dashboard/components/TrafficFor
 type Coordinates = {
   lat: number;
   lng: number;
+};
+
+type RouteToast = {
+  id: string;
+  message: string;
+  tone: "ok" | "warning";
 };
 
 type EventTypeFilter = "all" | "accident" | "closure" | "congestion";
@@ -79,6 +86,15 @@ export function UserTrafficDashboard() {
   const [focusCoordinates, setFocusCoordinates] = useState<Coordinates | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [fromLocation, setFromLocation] = useState("");
+  const [toLocation, setToLocation] = useState("");
+  const [routeFrom, setRouteFrom] = useState<Coordinates | null>(null);
+  const [routeTo, setRouteTo] = useState<Coordinates | null>(null);
+  const [routePath, setRoutePath] = useState<Coordinates[]>([]);
+  const [routeIncidents, setRouteIncidents] = useState<TrafficEvent[]>([]);
+  const [routeCheckPending, setRouteCheckPending] = useState(false);
+  const [routeCheckError, setRouteCheckError] = useState<string | null>(null);
+  const [routeToast, setRouteToast] = useState<RouteToast | null>(null);
 
   const { alertCenterEvents, loading, error, fetchNearbyActivities } = useTraffic();
   const {
@@ -109,6 +125,12 @@ export function UserTrafficDashboard() {
     [alertCenterEvents, center, eventTypeFilter, radiusKm, timeFilter],
   );
 
+  useEffect(() => {
+    if (!routeToast) return;
+    const timeout = window.setTimeout(() => setRouteToast(null), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [routeToast]);
+
   function useCurrentLocation() {
     setGeoError(null);
     if (!navigator.geolocation) {
@@ -135,6 +157,52 @@ export function UserTrafficDashboard() {
     );
   }
 
+  async function onCheckRoute() {
+    setRouteCheckError(null);
+    const fromText = fromLocation.trim();
+    const toText = toLocation.trim();
+
+    if (!fromText || !toText) {
+      setRouteCheckError("Enter both From and To locations.");
+      return;
+    }
+
+    setRouteCheckPending(true);
+
+    try {
+      const { response, body } = await checkRouteIncidents({
+        from: fromText,
+        to: toText,
+        bufferMeters: 20,
+      });
+
+      if (!response.ok) {
+        setRouteCheckError(body.error ?? "Failed to check route incidents.");
+        setRouteIncidents([]);
+        return;
+      }
+
+      if (body.from && body.to) {
+        setRouteFrom(body.from);
+        setRouteTo(body.to);
+        setFocusCoordinates(body.from);
+      }
+      setRoutePath(body.route ?? []);
+      setRouteIncidents(body.incidents ?? []);
+
+      const hasIncidents = body.count > 0;
+      setRouteToast({
+        id: crypto.randomUUID(),
+        tone: hasIncidents ? "warning" : "ok",
+        message: hasIncidents
+          ? `Route has incidents (${body.count}) within 20m.`
+          : "Route is clear (no incidents within 20m).",
+      });
+    } finally {
+      setRouteCheckPending(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -144,18 +212,75 @@ export function UserTrafficDashboard() {
         </p>
       </div>
 
+      <section className="rounded-xl border border-teal-900/50 bg-gradient-to-b from-teal-900 via-teal-950 to-slate-950 p-3 shadow-[inset_-1px_0_0_rgba(13,148,136,0.2)] dark:border-teal-800/60 dark:from-[#042f2e] dark:via-[#0f2725] dark:to-[#020617] dark:shadow-[inset_-1px_0_0_rgba(45,212,191,0.08)]">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (fromLocation.trim() && toLocation.trim()) {
+              void onCheckRoute();
+            } else {
+              setRouteCheckError("Enter both From and To locations.");
+            }
+          }}
+        >
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+            <input
+              type="text"
+              value={fromLocation}
+              onChange={(event) => setFromLocation(event.target.value)}
+              placeholder="From (address/place or lat,lng)"
+              className={adminFormControlClass}
+            />
+            <input
+              type="text"
+              value={toLocation}
+              onChange={(event) => setToLocation(event.target.value)}
+              placeholder="To (address/place or lat,lng)"
+              className={adminFormControlClass}
+            />
+            <button
+              type="submit"
+              disabled={routeCheckPending}
+              className={`whitespace-nowrap !text-white hover:text-white ${largeSecondaryButtonClass} disabled:opacity-60`}
+            >
+              {routeCheckPending ? "Checking..." : "Check route"}
+            </button>
+          </div>
+        </form>
+        {routeCheckError ? <p className={`mt-1 ${adminFormFieldErrorClass}`}>{routeCheckError}</p> : null}
+      </section>
+
       <div className="relative h-[52vh] min-h-[20rem] lg:h-[calc(100vh-14rem)] lg:min-h-[36rem]">
+
         <TrafficDashboardMap
           center={center}
           focusCoordinates={focusCoordinates}
           radiusKm={radiusKm}
           markers={filteredEvents}
           forecasts={forecasts}
+          routeFrom={routeFrom}
+          routeTo={routeTo}
+          routePath={routePath}
+          routeIncidents={routeIncidents}
           onCenterChange={(coordinates) => {
             setCenter(coordinates);
             setFocusCoordinates(coordinates);
           }}
         />
+
+        {routeToast ? (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-[800] -translate-x-1/2">
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm shadow-lg ${
+                routeToast.tone === "warning"
+                  ? "border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-700 dark:bg-rose-950 dark:text-rose-100"
+                  : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-100"
+              }`}
+            >
+              {routeToast.message}
+            </div>
+          </div>
+        ) : null}
 
         <section className="group z-[500] mt-4 w-full space-y-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur lg:absolute lg:bottom-4 lg:left-4 lg:top-4 lg:mt-0 lg:w-14 lg:overflow-hidden lg:p-3 lg:transition-all lg:duration-200 lg:hover:w-80 lg:hover:p-4 dark:border-zinc-700 dark:bg-zinc-950/95">
           <div className="hidden h-full flex-col items-center justify-between py-2 lg:flex lg:group-hover:hidden">
