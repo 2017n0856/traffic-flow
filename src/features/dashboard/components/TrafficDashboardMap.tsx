@@ -53,27 +53,6 @@ function getEventIcon(type: TrafficEvent["type"]) {
   });
 }
 
-function getForecastColor(level: TrafficForecast["forecast_level"]) {
-  if (level === "high") return "#dc2626";
-  if (level === "medium") return "#f59e0b";
-  return "#22c55e";
-}
-
-function toRadians(value: number) {
-  return (value * Math.PI) / 180;
-}
-
-function distanceKm(from: Coordinates, to: Coordinates) {
-  const earthRadiusKm = 6371;
-  const dLat = toRadians(to.lat - from.lat);
-  const dLng = toRadians(to.lng - from.lng);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(from.lat)) * Math.cos(toRadians(to.lat)) * Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadiusKm * c;
-}
-
 function CenterSelector({ onCenterChange }: { onCenterChange: (coordinates: Coordinates) => void }) {
   useMapEvents({
     click(event) {
@@ -154,11 +133,13 @@ export function TrafficDashboardMap({
           <CircleMarker
             key={`${forecast.zone_key}-${forecast.horizon_minutes}-${forecast.generated_at}`}
             center={[forecast.center_lat, forecast.center_lng]}
-            radius={9}
+            radius={10}
             pathOptions={{
-              color: getForecastColor(forecast.forecast_level),
-              fillColor: getForecastColor(forecast.forecast_level),
-              fillOpacity: 0.45,
+              color: "#dc2626",
+              fillColor: "#dc2626",
+              fillOpacity: 0.55,
+              weight: 2,
+              className: "forecast-pulse-marker",
             }}
           >
             <Popup>

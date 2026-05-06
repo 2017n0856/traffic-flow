@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+@keyframes forecastPulse {
+  0% {
+    fill: #fca5a5;
+    stroke: #f87171;
+    fill-opacity: 0.9;
+    stroke-opacity: 0.95;
+    stroke-width: 2;
+  }
+  50% {
+    fill: #991b1b;
+    stroke: #7f1d1d;
+    fill-opacity: 0.95;
+    stroke-opacity: 1;
+    stroke-width: 3;
+  }
+  100% {
+    fill: #fca5a5;
+    stroke: #f87171;
+    fill-opacity: 0.9;
+    stroke-opacity: 0.95;
+    stroke-width: 2;
+  }
+}
+
+.forecast-pulse-marker {
+  animation: forecastPulse 1.2s ease-in-out infinite;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
