@@ -105,39 +105,6 @@ export function TrafficDashboardMap({
     return [center.lat, center.lng];
   }, [center]);
 
-  const snappedForecasts = useMemo(() => {
-    if (markers.length === 0) return forecasts.map((forecast) => ({ forecast, snappedToIncident: false }));
-
-    return forecasts.map((forecast) => {
-      const forecastPoint = { lat: forecast.center_lat, lng: forecast.center_lng };
-      let nearest: TrafficEvent | null = null;
-      let nearestDistance = Number.POSITIVE_INFINITY;
-
-      for (const marker of markers) {
-        const markerPoint = { lat: marker.location_lat, lng: marker.location_lng };
-        const distance = distanceKm(forecastPoint, markerPoint);
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearest = marker;
-        }
-      }
-
-      // Keep original center when no nearby incident marker exists.
-      if (!nearest || nearestDistance > 2) {
-        return { forecast, snappedToIncident: false };
-      }
-
-      return {
-        forecast: {
-          ...forecast,
-          center_lat: nearest.location_lat,
-          center_lng: nearest.location_lng,
-        },
-        snappedToIncident: true,
-      };
-    });
-  }, [forecasts, markers]);
-
   return (
     <div className="relative z-0 h-full w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
       <MapContainer center={mapCenter} zoom={12} className="h-full w-full" scrollWheelZoom>
@@ -183,7 +150,7 @@ export function TrafficDashboardMap({
           </Marker>
         ))}
 
-        {snappedForecasts.map(({ forecast, snappedToIncident }) => (
+        {forecasts.map((forecast) => (
           <CircleMarker
             key={`${forecast.zone_key}-${forecast.horizon_minutes}-${forecast.generated_at}`}
             center={[forecast.center_lat, forecast.center_lng]}
@@ -205,9 +172,7 @@ export function TrafficDashboardMap({
                 <p className="mt-1 text-sm font-normal text-zinc-500">
                   Confidence {(forecast.confidence * 100).toFixed(0)}%
                 </p>
-                <p className="mt-1 text-sm font-normal text-zinc-500">
-                  {snappedToIncident ? "Display anchored to nearest incident location" : "Display at forecast zone center"}
-                </p>
+                <p className="mt-1 text-sm font-normal text-zinc-500">Display at forecast zone center</p>
               </div>
             </Popup>
           </CircleMarker>
