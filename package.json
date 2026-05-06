@@ -5,7 +5,7 @@
   "description": "Traffic Flow — Next.js app (App Router, TypeScript, Tailwind CSS v4)",
   "scripts": {
     "dev": "npm run supabase:check && next dev",
-    "dev:turbo": "npm run supabase:check && next dev --turbopack",
+    "dev:turbo": "node scripts/start-dev-with-forecast.mjs --turbopack --run-forecast-script",
     "build": "next build",
     "start": "npm run supabase:check && next start",
     "lint": "eslint",
